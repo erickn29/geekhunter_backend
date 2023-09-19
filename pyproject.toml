@@ -1,0 +1,44 @@
+[tool.ruff]
+
+select = [
+    "E",
+    "F",
+    "W",
+    "N",
+    "D",
+    "UP",
+    "ANN",
+    "BLE",
+    "B",
+    "C4",
+    "DJ",
+    "ICN",
+    "PYI",
+    "RET",
+    "SIM",
+    "PL",
+]
+
+exclude = [
+    "migrations",
+    "__init__.py",
+    "asgi.py",
+    "wsgi.py",
+    "manage.py",
+    "settings.py",
+    "apps.py",
+]
+
+ignore = [
+    "D100",
+    "D107",
+    "D400",
+    "D415",
+    "ANN101",
+    "DJ001",
+    "D105",
+    "D203",
+    "D213",
+]
+
+line-length = 79
