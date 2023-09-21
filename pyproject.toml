@@ -1,5 +1,27 @@
-[tool.ruff]
+[tool.poetry]
+name = "geekhunter-backend"
+version = "0.1.0"
+description = ""
+authors = ["'Yaroslav <'arhdomain@gmail.com'>"]
+readme = "README.md"
 
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^4.2.5"
+beautifulsoup4 = "^4.12.2"
+djangorestframework = "^3.14.0"
+django-cors-headers = "^4.2.0"
+psycopg2 = "^2.9.7"
+ruff = "^0.0.290"
+xmltodict = "^0.13.0"
+pre-commit = "^3.4.0"
+python-dotenv = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
 select = [
     "E",
     "F",
