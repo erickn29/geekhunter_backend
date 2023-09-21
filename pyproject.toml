@@ -16,6 +16,8 @@ ruff = "^0.0.290"
 xmltodict = "^0.13.0"
 pre-commit = "^3.4.0"
 python-dotenv = "^1.0.0"
+requests = "^2.31.0"
+tqdm = "^4.66.1"
 
 [build-system]
 requires = ["poetry-core"]
@@ -61,6 +63,8 @@ ignore = [
     "D105",
     "D203",
     "D213",
+    "PLR0912",
+    "PLR0915",
 ]
 
 line-length = 79
