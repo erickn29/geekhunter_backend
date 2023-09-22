@@ -5,7 +5,14 @@ class DefaultDataModel(BaseModel):
     """Базовый класс для работы с данными"""
 
     name: str
-    count: int = None
+
+    # @model_validator(mode='after')
+    # def check_name_length(self) -> 'DefaultDataModel':
+    #     """Метод валидирует длину строки"""
+    #     max_length = 128
+    #     if 0 < len(self.name) <= max_length:
+    #         print(f'Name length error: {self.name}')
+    #     return self
 
 
 class StackTool(DefaultDataModel):
@@ -41,7 +48,7 @@ class Experience(DefaultDataModel):
 class Grade(DefaultDataModel):
     """Класс для работы с грейдом"""
 
-    pass
+    name: str | None
 
 
 class Company(BaseModel):
@@ -55,27 +62,27 @@ class Vacancy(BaseModel):
     """Класс для работы с вакансией"""
 
     title: str
-    company: Company
-    is_remote: bool = False
-    salary_from: int = None
-    salary_to: int = None
     text: str
+    link: str
     speciality: Speciality
     experience: Experience
     language: Language
-    grade: str = None
-    stack: list[StackTool] = None
-    link: str
+    company: Company
+    is_remote: bool = False
+    salary_from: int | None = None
+    salary_to: int | None = None
+    grade: Grade
+    stack: list[StackTool] | None = None
 
     @model_validator(mode='after')
     def check_salary_exists(self) -> 'Vacancy':
         """Метод проверяет есть ли хотя бы 1 значение в зарплате (от или до)"""
         if not any([self.salary_to, self.salary_from]):
-            raise ValueError(f'No salaries in vacancy: {self.link}')
+            print(f'No salaries in vacancy: {self.link}')
         return self
 
 
 class VacanciesList(BaseModel):
     """Класс для работы со списком вакансий"""
 
-    vacancies: list[Vacancy]
+    data: list[Vacancy] = []

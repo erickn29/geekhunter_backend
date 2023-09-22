@@ -6,4 +6,6 @@ from rest_framework.response import Response
 @api_view(['GET', ])
 def test(request: HttpRequest) -> Response:
     """Тестовая"""
-    return Response({'test': request.path_info})
+    from parser.test_parsers import main
+    data = main(True)
+    return Response({'test': data})

@@ -1,18 +1,17 @@
 from datetime import datetime
-import json
-from typing import NoReturn
 
 from parser.hh_parser import HHParser
+from parser.schema import VacanciesList
 
 
-def test_hh() -> dict:
+def test_hh() -> VacanciesList:
     """Функция для тестирования парсера hh.ru"""
     print('run hh parser')
     parser = HHParser()
     return parser.get_all_vacancies(test=True, vacancies_count=5)
 
 
-def main(wright_to_file: bool = False) -> NoReturn:
+def main(wright_to_file: bool = True) -> VacanciesList:
     """Функция для тестирования парсеров"""
     print('run main func')
     hh_result = test_hh()
@@ -22,8 +21,9 @@ def main(wright_to_file: bool = False) -> NoReturn:
             'w',
             encoding='utf-8'
         ) as f:
-            f.write(json.dumps(hh_result, ensure_ascii=False))
+            f.write(hh_result.model_dump_json())
     print('Test is done!')
+    return hh_result
 
 
 if __name__ == '__main__':

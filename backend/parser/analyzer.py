@@ -1,5 +1,8 @@
 from bs4 import BeautifulSoup
 
+from client_api_app.models import Language
+
+
 # from vacancies_app.models import StackTools, Language
 
 
@@ -106,23 +109,25 @@ class Analyzer:
                 new_text += '\n- '
         return new_text
 
-    # @staticmethod
-    # def get_language(title: str, text: str, stack: list = None):
-    #     for lang in Analyzer.LANGUAGES:
-    #         if lang in title.replace('С#', 'C#').replace('С++', 'C++').
-    #         replace('Frontend', 'JavaScript').replace('JAVA', 'Java'):
-    #             obj = Language.objects.get_or_create(name=lang)[0]
-    #             return obj
-    #     if stack:
-    #         for lang in Analyzer.LANGUAGES:
-    #             if lang in stack:
-    #                 obj = Language.objects.get_or_create(name=lang)[0]
-    #                 return obj
-    #     for lang in Analyzer.LANGUAGES:
-    #         if lang in text:
-    #             obj = Language.objects.get_or_create(name=lang)[0]
-    #             return obj
-    #     return
+    @staticmethod
+    def get_language(title: str, text: str, stack: list = None) -> str | None:
+        """Метод возвращает название языка программирования"""
+        for lang in Analyzer.LANGUAGES:
+            if lang in title.replace('С#', 'C#').replace('С++', 'C++').replace(
+                    'Frontend', 'JavaScript').replace('JAVA', 'Java'):
+                obj: Language = Language.objects.get_or_create(name=lang)[0]
+                return obj.name
+        if stack:
+            for lang in Analyzer.LANGUAGES:
+                if lang in stack:
+                    obj: Language = Language.objects.get_or_create(
+                        name=lang)[0]
+                    return obj.name
+        for lang in Analyzer.LANGUAGES:
+            if lang in text:
+                obj: Language = Language.objects.get_or_create(name=lang)[0]
+                return obj.name
+        return None
 
     @staticmethod
     def get_speciality(title: str, text: str) -> str | None:

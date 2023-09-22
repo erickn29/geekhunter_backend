@@ -5,6 +5,8 @@ import requests.exceptions
 from requests import request
 from tqdm import tqdm
 
+from parser.schema import Vacancy, VacanciesList
+
 
 # from tqdm import tqdm
 
@@ -89,7 +91,7 @@ class BaseParser:
             print(f'Ошибка запроса к {link}')
             return None
 
-    def _get_vacancy_data(self, page: str, link: str) -> dict | None:
+    def _get_vacancy_data(self, page: str, link: str) -> Vacancy | None:
         """Метод возвращает информацию о вакансии"""
         pass
 
@@ -105,12 +107,12 @@ class BaseParser:
             print_vacancy: bool = False,
             test: bool = False,
             vacancies_count: int = 5
-    ) -> dict:
+    ) -> VacanciesList:
         """Метод возвращает все найденные вакансии.
 
         Получает вакансии с первой и последней страницы в случае теста
         """
-        vacancy_dict = {'vacancies': []}
+        vacancies = VacanciesList()
         main_page_html = self._get_main_page_html()
         pages_list = self._get_pages(main_page_html)
         vacancy_links = self._get_vacancies_links(
@@ -125,13 +127,13 @@ class BaseParser:
                 vacancy_page = self._get_vacancy_page_text(link)
                 vacancy_data = self._get_vacancy_data(vacancy_page, link)
                 if vacancy_data:
-                    vacancy_dict['vacancies'].append(vacancy_data)
+                    vacancies.data.append(vacancy_data)
                     time.sleep(self.sleep_time)
                     if print_vacancy:
                         print(vacancy_data)
         except IndexError as e:
             print(e)
-        return vacancy_dict
+        return vacancies
 
     # @staticmethod
     # def vacancies_to_db(self, vacancies_dict: dict):

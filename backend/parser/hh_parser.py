@@ -8,6 +8,16 @@ from bs4 import BeautifulSoup
 
 from .base_parser import BaseParser
 from .analyzer import Analyzer
+from .schema import (
+    StackTool,
+    Language,
+    City,
+    Speciality,
+    Experience,
+    Grade,
+    Company,
+    Vacancy
+)
 
 
 class HHParser(BaseParser):
@@ -78,124 +88,194 @@ class HHParser(BaseParser):
                 print(f'Не смог обработать страницу {page}')
         return links_list
 
-    def _get_vacancy_data(self, page: str, link: str) -> dict:
+    def _get_title(self, soup: BeautifulSoup) -> str | None:
+        """Метод возвращает заголовок вакансии"""
+        if soup.find('h1', {'data-qa': "vacancy-title"}):
+            return self.string_cleaner(
+                soup.find('h1', {'data-qa': "vacancy-title"}).text
+            )
+        return None
+
+    def _get_text(self, soup: BeautifulSoup) -> str | None:
+        """Метод возвращает текст вакансии"""
+        if soup.find('div', {'class': "vacancy-description"}):
+            return self.string_cleaner(
+                soup.find('div', {'class': "vacancy-description"}).text
+            )
+        return None
+
+    @staticmethod
+    def _get_speciality(title: str, text: str) -> str | None:
+        """Метод возвращает специальность"""
+        return Analyzer.get_speciality(title=title, text=text)
+
+    def _get_experience(self, soup: BeautifulSoup) -> str | None:
+        """Метод возвращает требуемый опыт"""
+        if soup.find('span', {'data-qa': "vacancy-experience"}):
+            return Analyzer.get_experience(
+                self.string_cleaner(
+                    soup.find('span', {'data-qa': "vacancy-experience"}).text
+                )
+            )
+        return None
+
+    @staticmethod
+    def _get_language(title: str, text: str, stack: list | None) -> str | None:
+        """Метод возвращает требуемый язык"""
+        return Analyzer.get_language(title, text, stack)
+
+    @staticmethod
+    def _get_grade(title: str, text: str) -> str | None:
+        """Метод возвращает требуемый грейд"""
+        return Analyzer.get_grade(title, text)
+
+    def _get_company_name(self, soup: BeautifulSoup) -> str | None:
+        """Метод возвращает название компании"""
+        if soup.find('div', {'class': "vacancy-company-details"}):
+            return self.string_cleaner(
+                soup.find(
+                    'div', {'class': "vacancy-company-details"}
+                ).text
+            )
+        return None
+
+    def _get_company_city(self, soup: BeautifulSoup) -> str | None:
+        """Метод возвращает адрес компании"""
+        if soup.find('p', {'data-qa': "vacancy-view-location"}):
+            return self.string_cleaner(
+                soup.find(
+                    'p', {'data-qa': "vacancy-view-location"}
+                ).text
+            ).split(',')[0]
+        if soup.find('span', {'data-qa': "vacancy-view-raw-address"}):
+            return self.string_cleaner(
+                soup.find(
+                    'span', {'data-qa': "vacancy-view-raw-address"}
+                ).text
+            ).split(',')[0]
+        return None
+
+    def _get_is_remote(self, soup: BeautifulSoup) -> bool:
+        """Метод возвращает возможность удаленной работы"""
+        if soup.find('p', {'data-qa': "vacancy-view-employment-mode"}):
+            remote_section = self.string_cleaner(
+                soup.find(
+                    'p', {'data-qa': "vacancy-view-employment-mode"}
+                ).text
+            ).lower()
+            if 'удаленная работа' in remote_section:
+                return True
+        return False
+
+    @staticmethod
+    def _get_stack(soup: BeautifulSoup) -> list[StackTool] | None:
+        """Метод возвращает стек навыков"""
+        if soup.find('div', {'class': "bloko-tag-list"}):
+            stack_not_clear = soup.find_all(
+                'div', {'class': "bloko-tag bloko-tag_inline"}
+            )
+            return [StackTool(name=i.text) for i in stack_not_clear]
+        return None
+
+    def _get_salary(
+            self, soup: BeautifulSoup
+    ) -> tuple[int | None, int | None]:
+        """Метод возвращает зарплату"""
+        salary_from: int | None = None
+        salary_to: int | None = None
+        salary = self.string_cleaner(
+            soup.find('div', {'data-qa': 'vacancy-salary'}).text
+        ).replace('на руки', '').replace('до вычета налогов', '')
+        if 'руб' in salary or '₽' in salary:
+            if 'от' in salary and 'до' not in salary:
+                salary_from = int(
+                    ''.join([i for i in salary if i.isdigit()])
+                )
+            if 'до' in salary and 'от' not in salary:
+                salary_to = int(
+                    ''.join([i for i in salary if i.isdigit()])
+                )
+            if 'от' in salary and 'до' in salary:
+                salary_list = salary.split('до')
+                salary_from = int(
+                    ''.join([i for i in salary_list[0] if i.isdigit()])
+                )
+                salary_to = int(
+                    ''.join([i for i in salary_list[1] if i.isdigit()])
+                )
+        if 'USD' in salary or 'EUR' in salary:
+            if 'от' in salary and 'до' not in salary:
+                salary_from = int(
+                    ''.join([i for i in salary if i.isdigit()])
+                ) * self.course_rate
+            if 'до' in salary and 'от' not in salary:
+                salary_to = int(
+                    ''.join([i for i in salary if i.isdigit()])
+                ) * self.course_rate
+            if 'от' in salary and 'до' in salary:
+                salary_list = salary.split('до')
+                salary_from = int(
+                    ''.join([i for i in salary_list[0] if i.isdigit()])
+                ) * self.course_rate
+                salary_to = int(
+                    ''.join([i for i in salary_list[1] if i.isdigit()])
+                ) * self.course_rate
+        return salary_from, salary_to
+
+    def _get_vacancy_data(self, page: str, link: str) -> Vacancy | None:
         """Метод возвращает информацию о вакансии"""
         if page:
             try:
                 soup = BeautifulSoup(page, 'html.parser')
-                title = self.string_cleaner(
-                    soup.find('h1', {'data-qa': "vacancy-title"}).text
+                title = self._get_title(soup)
+                text = self._get_text(soup)
+                stack = self._get_stack(soup)
+                salary = self._get_salary(soup)
+                is_remote = self._get_is_remote(soup)
+
+                language = Language(
+                    name=self._get_language(
+                        title=title,
+                        text=text,
+                        stack=stack
+                    )
                 )
-                salary = self.string_cleaner(
-                    soup.find('div', {'data-qa': 'vacancy-salary'}).text
-                ).replace('на руки', '').replace('до вычета налогов', '')
-                salary_from = None
-                salary_to = None
-                experience = None
-                # text = ''
-                new_text = ''
-                stack = None
-                company = ''
-                company_address = ''
-                is_remote = False
-                if 'руб' in salary or '₽' in salary:
-                    if 'от' in salary and 'до' not in salary:
-                        salary_from = int(
-                            ''.join([i for i in salary if i.isdigit()])
-                        )
-                    if 'до' in salary and 'от' not in salary:
-                        salary_to = int(
-                            ''.join([i for i in salary if i.isdigit()])
-                        )
-                    if 'от' in salary and 'до' in salary:
-                        salary_list = salary.split('до')
-                        salary_from = int(
-                            ''.join([i for i in salary_list[0] if i.isdigit()])
-                        )
-                        salary_to = int(
-                            ''.join([i for i in salary_list[1] if i.isdigit()])
-                        )
-                if 'USD' in salary or 'EUR' in salary:
-                    if 'от' in salary and 'до' not in salary:
-                        salary_from = int(
-                            ''.join([i for i in salary if i.isdigit()])
-                        ) * self.course_rate
-                    if 'до' in salary and 'от' not in salary:
-                        salary_to = int(
-                            ''.join([i for i in salary if i.isdigit()])
-                        ) * self.course_rate
-                    if 'от' in salary and 'до' in salary:
-                        salary_list = salary.split('до')
-                        salary_from = int(
-                            ''.join([i for i in salary_list[0] if i.isdigit()])
-                        ) * self.course_rate
-                        salary_to = int(
-                            ''.join([i for i in salary_list[1] if i.isdigit()])
-                        ) * self.course_rate
-                if soup.find('span', {'data-qa': "vacancy-experience"}):
-                    experience = Analyzer.get_experience(
-                        self.string_cleaner(
-                            soup.find(
-                                'span', {'data-qa': "vacancy-experience"}
-                            ).text
-                        )
-                    )
-                # if soup.find('div', {'class': "vacancy-section"}):
-                #     text = soup.find(
-                #         'div', {'class': "vacancy-description"}
-                #     ).text
-                if soup.find('div', {'class': "bloko-tag-list"}):
-                    stack_not_clear = soup.find_all(
-                        'div', {'class': "bloko-tag bloko-tag_inline"}
-                    )
-                    stack = [i.text for i in stack_not_clear]
-                if soup.find('div', {'class': "vacancy-company-details"}):
-                    company = self.string_cleaner(
-                        soup.find(
-                            'div', {'class': "vacancy-company-details"}
-                        ).text
-                    )
-                if soup.find('p', {'data-qa': "vacancy-view-location"}):
-                    company_address = self.string_cleaner(
-                        soup.find(
-                            'p', {'data-qa': "vacancy-view-location"}
-                        ).text
-                    ).split(',')[0]
-                if soup.find('span', {'data-qa': "vacancy-view-raw-address"}):
-                    company_address = self.string_cleaner(
-                        soup.find(
-                            'span', {'data-qa': "vacancy-view-raw-address"}
-                        ).text
-                    ).split(',')[0]
-                if soup.find('p', {'data-qa': "vacancy-view-employment-mode"}):
-                    remote_section = self.string_cleaner(
-                        soup.find(
-                            'p', {'data-qa': "vacancy-view-employment-mode"}
-                        ).text
-                    ).lower()
-                    if 'удаленная работа' in remote_section:
-                        is_remote = True
-                vacancy = {}
-                grade = Analyzer.get_grade(title, new_text)
-                vacancy.update({
-                    'title': title,
-                    'salary_from': salary_from,
-                    'salary_to': salary_to,
-                    'is_remote': is_remote,
-                    'experience': experience,
-                    'grade': grade,
-                    # 'text': text,
-                    'stack': stack,
-                    'company': company,
-                    'company_address': company_address,
-                    'link': link
-                })
+                stack_tools = self._get_stack(soup)
+                speciality = Speciality(
+                    name=self._get_speciality(title=title, text=text)
+                )
+                experience = Experience(
+                    name=self._get_experience(soup)
+                )
+                grade = Grade(
+                    name=self._get_grade(title=title, text=text)
+                )
+                city = City(
+                    name=self._get_company_city(soup)
+                )
+                company = Company(
+                    city=city,
+                    name=self._get_company_name(soup)
+                )
                 time.sleep(self.sleep_time)
-                return vacancy
-            except AttributeError as e:
+                return Vacancy(
+                    title=title,
+                    text=text,
+                    link=link,
+                    speciality=speciality,
+                    experience=experience,
+                    language=language,
+                    company=company,
+                    is_remote=is_remote,
+                    salary_from=salary[0],
+                    salary_to=salary[1],
+                    grade=grade,
+                    stack=stack_tools,
+                )
+            except IndexError as e:
                 print(e, link)
             except ValueError as e:
                 print(e, link)
             except TypeError as e:
                 print(e, link)
-        return {}
+        return None
