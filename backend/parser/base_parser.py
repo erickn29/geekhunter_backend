@@ -133,15 +133,6 @@ class BaseParser:
             print(e)
         return vacancy_dict
 
-    # def test_parser(self, vacancies_dict: dict) -> NoReturn:
-    #     """"""
-    #     for vacancy in tqdm(vacancies_dict['vacancies']):
-    #         if vacancy and not (
-    #                 set(vacancy.get('title').lower().split()) &
-    #                 set(self.STOP_WORDS)
-    #         ):
-    #             pass
-
     # @staticmethod
     # def vacancies_to_db(self, vacancies_dict: dict):
     #     for vacancy in tqdm(vacancies_dict['vacancies']):

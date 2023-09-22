@@ -18,6 +18,7 @@ pre-commit = "^3.4.0"
 python-dotenv = "^1.0.0"
 requests = "^2.31.0"
 tqdm = "^4.66.1"
+pydantic = "^2.3.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -56,6 +57,7 @@ exclude = [
 ignore = [
     "D100",
     "D107",
+    "D106",
     "D400",
     "D415",
     "ANN101",
