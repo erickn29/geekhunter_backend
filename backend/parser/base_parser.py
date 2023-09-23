@@ -102,6 +102,20 @@ class BaseParser:
             '\t', '').replace('\xa0', ' ').replace('город ', '').replace(
             'деревня ', '').replace('г. ', '')
 
+    @staticmethod
+    def rm_punctuations(string: str) -> str:
+        """Метод очищает строку от знаков пунктуации"""
+        try:
+            punctuations = (
+                '.', ',', ':', ';', '\'', '\"', '(', ')', '[', ']'
+            )
+            for p in punctuations:
+                string = string.replace(p, '')
+            return string
+        except AttributeError as e:
+            print(e)
+            return ''
+
     def get_all_vacancies(
             self, *,
             print_vacancy: bool = False,

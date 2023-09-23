@@ -69,10 +69,10 @@ class Vacancy(BaseModel):
     language: Language
     company: Company
     is_remote: bool = False
-    salary_from: int | None = None
-    salary_to: int | None = None
+    salary_from: int | None
+    salary_to: int | None
     grade: Grade
-    stack: list[StackTool] | None = None
+    stack: list[StackTool] | None
 
     @model_validator(mode='after')
     def check_salary_exists(self) -> 'Vacancy':

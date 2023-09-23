@@ -3,9 +3,6 @@ from bs4 import BeautifulSoup
 from client_api_app.models import Language
 
 
-# from vacancies_app.models import StackTools, Language
-
-
 class Analyzer:
     """Класс для текстового анализа данных вакансии"""
 
@@ -23,11 +20,18 @@ class Analyzer:
     ]
 
     GRADES = {
-        'Trainee': ['trainee', 'стажер', 'стажёр'],
+        # 'Trainee': ['trainee', 'стажер', 'стажёр'],
         'Junior': ['junior', 'джуниор'],
         'Middle': ['middle', 'миддл'],
         'Senior': ['senior', 'сеньор', 'сениор'],
-        'Lead': ['lead', 'лид', 'тимлид', 'тим лид']
+        'Lead': ['lead', 'лид', 'тимлид', 'тим лид', 'teamlead']
+    }
+
+    GRADES_EXP_MAPPING = {
+        'нет опыта': 'Junior',
+        'от 1 года': 'Junior',
+        'от 3 лет': 'Middle',
+        'более 5 лет': 'Senior',
     }
 
     HH_EXPERIENCE = {
@@ -109,12 +113,16 @@ class Analyzer:
                 new_text += '\n- '
         return new_text
 
+    # TODO: Сделать маппинг языков по алиасам
     @staticmethod
     def get_language(title: str, text: str, stack: list = None) -> str | None:
         """Метод возвращает название языка программирования"""
         for lang in Analyzer.LANGUAGES:
             if lang in title.replace('С#', 'C#').replace('С++', 'C++').replace(
-                    'Frontend', 'JavaScript').replace('JAVA', 'Java'):
+                'Frontend', 'JavaScript').replace(
+                'JAVA', 'Java').replace('Node.JS', 'JavaScript').replace(
+                'React.js', 'JavaScript'
+            ):
                 obj: Language = Language.objects.get_or_create(name=lang)[0]
                 return obj.name
         if stack:
@@ -143,16 +151,23 @@ class Analyzer:
         return None
 
     @staticmethod
-    def get_grade(title: str, text: str) -> str | None:
+    def get_grade(title: str, text: str, experience: str = None) -> str | None:
         """Метод возвращает требуемый грейд"""
-        for word in title.split(' '):
-            for k, v in Analyzer.GRADES.items():
-                if word.lower() in v:
-                    return k
-        for word in text.split(' '):
-            for k, v in Analyzer.GRADES.items():
-                if word.lower() in v:
-                    return k
+        try:
+            for word in title.split(' '):
+                for k, v in Analyzer.GRADES.items():
+                    if word.lower() in v:
+                        return k
+            for word in text.split(' '):
+                for k, v in Analyzer.GRADES.items():
+                    if word.lower() in v:
+                        return k
+            if experience:
+                return Analyzer.GRADES_EXP_MAPPING.get(experience)
+        except AttributeError as e:
+            print(e)
+        except KeyError as e:
+            print(e)
         return None
 
     @staticmethod

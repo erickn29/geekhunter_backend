@@ -124,10 +124,13 @@ class HHParser(BaseParser):
         """Метод возвращает требуемый язык"""
         return Analyzer.get_language(title, text, stack)
 
-    @staticmethod
-    def _get_grade(title: str, text: str) -> str | None:
+    def _get_grade(self, title: str, text: str, experience: str) -> str | None:
         """Метод возвращает требуемый грейд"""
-        return Analyzer.get_grade(title, text)
+        return Analyzer.get_grade(
+            title=self.rm_punctuations(title),
+            text=self.rm_punctuations(text),
+            experience=experience
+        )
 
     def _get_company_name(self, soup: BeautifulSoup) -> str | None:
         """Метод возвращает название компании"""
@@ -203,7 +206,7 @@ class HHParser(BaseParser):
                 salary_to = int(
                     ''.join([i for i in salary_list[1] if i.isdigit()])
                 )
-        if 'USD' in salary or 'EUR' in salary:
+        if '$' in salary or '€' in salary:
             if 'от' in salary and 'до' not in salary:
                 salary_from = int(
                     ''.join([i for i in salary if i.isdigit()])
@@ -248,8 +251,12 @@ class HHParser(BaseParser):
                     name=self._get_experience(soup)
                 )
                 grade = Grade(
-                    name=self._get_grade(title=title, text=text)
+                    name=self._get_grade(
+                        title=title,
+                        text=text,
+                        experience=experience.name)
                 )
+                print(grade, '=grade')
                 city = City(
                     name=self._get_company_city(soup)
                 )
