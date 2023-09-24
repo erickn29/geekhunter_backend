@@ -27,6 +27,30 @@ class Analyzer:
         'Lead': ['lead', 'лид', 'тимлид', 'тим лид', 'teamlead']
     }
 
+    LANGUAGES_MAPPING = {
+        ('Python', 'python'): 'Python',
+        ('PHP', ): 'PHP',
+        ('C++', 'С++'): 'C++',
+        ('C#', 'С#'): 'C#',
+        (
+            'JavaScript',
+            'Java Script',
+            'react.js',
+            'Frontend',
+            'Node.JS',
+            'React.js',
+            'React',
+            'Node.js',
+            'Vue',
+            'Angular',
+        ): 'JavaScript',
+        ('Java', ): 'Java',
+        ('Golang', 'GO', 'Go'): 'Golang',
+        ('Swift', ): 'Swift',
+        ('Kotlin', ): 'Kotlin',
+        ('Rust', ): 'Rust',
+    }
+
     GRADES_EXP_MAPPING = {
         'нет опыта': 'Junior',
         'от 1 года': 'Junior',
@@ -113,18 +137,15 @@ class Analyzer:
                 new_text += '\n- '
         return new_text
 
-    # TODO: Сделать маппинг языков по алиасам
     @staticmethod
     def get_language(title: str, text: str, stack: list = None) -> str | None:
         """Метод возвращает название языка программирования"""
-        for lang in Analyzer.LANGUAGES:
-            if lang in title.replace('С#', 'C#').replace('С++', 'C++').replace(
-                'Frontend', 'JavaScript').replace(
-                'JAVA', 'Java').replace('Node.JS', 'JavaScript').replace(
-                'React.js', 'JavaScript'
-            ):
-                obj: Language = Language.objects.get_or_create(name=lang)[0]
-                return obj.name
+        for word in title.split(' '):
+            for tpl, lang in Analyzer.LANGUAGES_MAPPING.items():
+                if word.lower() in list(map(str.lower, tpl)):
+                    obj: Language = Language.objects.get_or_create(
+                        name=lang)[0]
+                    return obj.name
         if stack:
             for lang in Analyzer.LANGUAGES:
                 if lang in stack:
@@ -132,7 +153,7 @@ class Analyzer:
                         name=lang)[0]
                     return obj.name
         for lang in Analyzer.LANGUAGES:
-            if lang in text:
+            if lang.lower() in text.lower():
                 obj: Language = Language.objects.get_or_create(name=lang)[0]
                 return obj.name
         return None

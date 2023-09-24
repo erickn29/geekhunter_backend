@@ -6,14 +6,16 @@ from parser.schema import VacanciesList
 
 def test_hh() -> VacanciesList:
     """Функция для тестирования парсера hh.ru"""
-    print('run hh parser')
+    print('---run hh parser---')
     parser = HHParser()
-    return parser.get_all_vacancies(test=True, vacancies_count=5)
+    vacancies = parser.get_all_vacancies(test=True, vacancies_count=5)
+    parser.vacancies_to_db(vacancies)
+    return vacancies
 
 
 def main(wright_to_file: bool = True) -> VacanciesList:
     """Функция для тестирования парсеров"""
-    print('run main func')
+    print('---run main func---')
     hh_result = test_hh()
     if wright_to_file:
         with open(

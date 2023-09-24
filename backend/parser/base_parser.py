@@ -2,10 +2,13 @@ import time
 from typing import NoReturn
 
 import requests.exceptions
+from django.core.exceptions import MultipleObjectsReturned
 from requests import request
 from tqdm import tqdm
 
-from parser.schema import Vacancy, VacanciesList
+from client_api_app.models import Company, StackTool, Speciality, Experience, \
+    Grade, Language, City, Vacancy
+from . import schema
 
 
 # from tqdm import tqdm
@@ -26,9 +29,9 @@ class BaseParser:
     STOP_WORDS = (
         '1C', '1С', '1с', '1c', 'машинист', 'водитель', 'таксист', 'курьер',
         'охранник', 'поддержки', 'поддержку', 'оператор', 'поддержка',
-        'маркетолог', 'онлайн-поддержки', 'менеджер'
+        'маркетолог', 'онлайн-поддержки', 'менеджер', 'инженер-проектировщик'
     )
-    sleep_time = 1
+    sleep_time = 0.2
     course_rate = 100
 
     def __init__(self, url: str) -> NoReturn:
@@ -91,7 +94,7 @@ class BaseParser:
             print(f'Ошибка запроса к {link}')
             return None
 
-    def _get_vacancy_data(self, page: str, link: str) -> Vacancy | None:
+    def _get_vacancy_data(self, page: str, link: str) -> schema.Vacancy | None:
         """Метод возвращает информацию о вакансии"""
         pass
 
@@ -121,12 +124,12 @@ class BaseParser:
             print_vacancy: bool = False,
             test: bool = False,
             vacancies_count: int = 5
-    ) -> VacanciesList:
+    ) -> schema.VacanciesList:
         """Метод возвращает все найденные вакансии.
 
         Получает вакансии с первой и последней страницы в случае теста
         """
-        vacancies = VacanciesList()
+        vacancies = schema.VacanciesList()
         main_page_html = self._get_main_page_html()
         pages_list = self._get_pages(main_page_html)
         vacancy_links = self._get_vacancies_links(
@@ -149,53 +152,69 @@ class BaseParser:
             print(e)
         return vacancies
 
-    # @staticmethod
-    # def vacancies_to_db(self, vacancies_dict: dict):
-    #     for vacancy in tqdm(vacancies_dict['vacancies']):
-    #         if vacancy and not (
-    #             set(vacancy.get('title').lower().split()) &
-    #             set(self.STOP_WORDS)
-    #         ):
-    #             try:
-    #                 company_obj = Company.objects.get_or_create(
-    #                     name=vacancy.get('company'),
-    #                     country='Россия',
-    #                     city=vacancy.get('company_address').split(',')[0],
-    #                 )[0]
-    #                 vacancy_obj = Vacancy.objects.update_or_create(
-    #                     title=vacancy.get('title'),
-    #                     text=vacancy.get('text'),
-    #                     company=company_obj,
-    #                     is_remote=vacancy.get('is_remote'),
-    #                     salary_from=vacancy.get('salary_from'),
-    #                     salary_to=vacancy.get('salary_to'),
-    #                     speciality=Analyzer.get_speciality(
-    #                         vacancy.get('title'), vacancy.get('text')
-    #                     ),
-    #                     experience=vacancy.get('experience'),
-    #                     grade=vacancy.get('grade'),
-    #                     link=vacancy.get('link'),
-    #                     language=Analyzer.get_language(
-    #                         vacancy.get('title'),
-    #                         vacancy.get('text'),
-    #                         vacancy.get('stack')
-    #                     ),
-    #                     # date=datetime.date.today(),
-    #                     defaults={
-    #                         'update': vacancy.get('date'),
-    #                     }
-    #                 )[0]
-    #                 if vacancy.get('stack'):
-    #                     for stack in vacancy.get('stack'):
-    #                         stack_obj = StackTools.objects.get_or_create(
-    #                             name=stack,
-    #                         )[0]
-    #                         if stack_obj.count:
-    #                             stack_obj.count += 1
-    #                         else:
-    #                             stack_obj.count = 1
-    #                         stack_obj.save()
-    #                         vacancy_obj.stack.add(stack_obj)
-    #             except Exception as e:
-    #                 print(e)
-    #                 continue
+    def vacancies_to_db(self, vacancies: schema.VacanciesList) -> NoReturn:
+        """Метод добавляет вакансии в БД"""
+        for vacancy in tqdm(vacancies.data):
+            if vacancy and not (
+                set(vacancy.title.lower().split()) &
+                set(self.STOP_WORDS)
+            ):
+                try:
+                    city_obj = City.objects.get_or_create(
+                        name=vacancy.company.city.name
+                    )[0]
+                    speciality_obj = Speciality.objects.get_or_create(
+                        name=vacancy.speciality.name
+                    )[0]
+                    experience_obj = Experience.objects.get_or_create(
+                        name=vacancy.experience.name
+                    )[0]
+                    grade_obj = Grade.objects.get_or_create(
+                        name=vacancy.grade.name
+                    )[0]
+                    language_obj = Language.objects.get_or_create(
+                        name=vacancy.language.name
+                    )[0]
+                    company_obj = Company.objects.get_or_create(
+                        name=vacancy.company.name,
+                        city=city_obj,
+                    )[0]
+                    vacancy_obj, created = Vacancy.objects.get_or_create(
+                        title=vacancy.title,
+                        company=company_obj,
+                        is_remote=vacancy.is_remote,
+                        salary_from=vacancy.salary_from,
+                        salary_to=vacancy.salary_to,
+                        speciality=speciality_obj,
+                        experience=experience_obj,
+                        grade=grade_obj,
+                        link=vacancy.link,
+                        language=language_obj,
+                    )
+                    if created:
+                        city_obj.count += 1
+                        city_obj.save()
+                        speciality_obj.count += 1
+                        speciality_obj.save()
+                        experience_obj.count += 1
+                        experience_obj.save()
+                        grade_obj.count += 1
+                        grade_obj.save()
+                        language_obj.count += 1
+                        language_obj.save()
+                        if vacancy.stack:
+                            for stack in vacancy.stack:
+                                stack_obj = StackTool.objects.get_or_create(
+                                    name=stack.name,
+                                )[0]
+                                stack_obj.count += 1
+                                stack_obj.save()
+                                vacancy_obj.stack.add(stack_obj)
+                except MultipleObjectsReturned as e:
+                    print(e)
+                except AttributeError as e:
+                    print(e)
+                except IndexError as e:
+                    print(e)
+                except TypeError as e:
+                    print(e)

@@ -119,10 +119,16 @@ class HHParser(BaseParser):
             )
         return None
 
-    @staticmethod
-    def _get_language(title: str, text: str, stack: list | None) -> str | None:
+    def _get_language(
+            self,
+            title: str, text: str, stack: list | None
+    ) -> str | None:
         """Метод возвращает требуемый язык"""
-        return Analyzer.get_language(title, text, stack)
+        return Analyzer.get_language(
+            title=self.rm_punctuations(title),
+            text=self.rm_punctuations(text),
+            stack=stack
+        )
 
     def _get_grade(self, title: str, text: str, experience: str) -> str | None:
         """Метод возвращает требуемый грейд"""
@@ -256,7 +262,6 @@ class HHParser(BaseParser):
                         text=text,
                         experience=experience.name)
                 )
-                print(grade, '=grade')
                 city = City(
                     name=self._get_company_city(soup)
                 )

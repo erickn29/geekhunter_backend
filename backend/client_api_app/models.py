@@ -1,14 +1,15 @@
+
 from django.db import models
 from django.db.models import DO_NOTHING, CASCADE
 
-from .model_managers import ActualVacancies
+from .model_managers import CustomVacancyManager
 
 
 class BaseModel(models.Model):
     """Базовый класс для описания простых сущностей (город, язык...)"""
 
     name: str = models.CharField(max_length=128)
-    count: int = models.PositiveBigIntegerField(null=True)
+    count: int = models.PositiveBigIntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -16,47 +17,53 @@ class BaseModel(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    # def save(self, *args, **kwargs) -> NoReturn:
+    #     """Метод увеличивает счетчик при сохранении записи в БД"""
+    #     self.count += 1
+    #     print(f'Save method called! {self.name, self.count}')
+    #     super(BaseModel, self).save(*args, **kwargs)
+
 
 class StackTool(BaseModel):
     """Класс, описывающий модель навыка"""
 
     class Meta:
-        db_table = 'stack_tool'
+        db_table = 'vacancy_stack_tool'
 
 
 class Language(BaseModel):
     """Класс, описывающий модель языка программирования"""
 
     class Meta:
-        db_table = 'language'
+        db_table = 'vacancy_language'
 
 
 class City(BaseModel):
     """Класс, описывающий модель города"""
 
     class Meta:
-        db_table = 'city'
+        db_table = 'vacancy_city'
 
 
 class Speciality(BaseModel):
     """Класс, описывающий модель специализации"""
 
     class Meta:
-        db_table = 'speciality'
+        db_table = 'vacancy_speciality'
 
 
 class Experience(BaseModel):
     """Класс, описывающий модель опыта"""
 
     class Meta:
-        db_table = 'experience'
+        db_table = 'vacancy_experience'
 
 
 class Grade(BaseModel):
     """Класс, описывающий модель грейда"""
 
     class Meta:
-        db_table = 'grade'
+        db_table = 'vacancy_grade'
 
 
 class Company(models.Model):
@@ -66,7 +73,7 @@ class Company(models.Model):
     city = models.ForeignKey(City, on_delete=DO_NOTHING, null=True)
 
     class Meta:
-        db_table = 'company'
+        db_table = 'vacancy_company'
 
     def __str__(self) -> str:
         return f'{self.name} / Город: {self.city.name}'
@@ -88,8 +95,7 @@ class Vacancy(models.Model):
     language = models.ForeignKey(Language, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
 
-    objects = models.Manager()
-    actual = ActualVacancies()
+    objects = CustomVacancyManager()
 
     class Meta:
         indexes = [
@@ -98,7 +104,7 @@ class Vacancy(models.Model):
             ),
         ]
         unique_together = ('title', 'salary_from', 'salary_to', 'company')
-        db_table = 'vacancy'
+        db_table = 'vacancy_vacancy'
 
     def __str__(self) -> str:
         return self.title
