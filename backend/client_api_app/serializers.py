@@ -47,6 +47,20 @@ class SpecialitySerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     """Сериализатор для модели Company"""
 
+    city = serializers.SerializerMethodField()
+
+    def get_city(self, obj: Company) -> dict | None:
+        """F"""
+        try:
+            data = obj.city
+            if data:
+                serializer = CitySerializer(data)
+                return serializer.data
+            return None
+        except AttributeError as e:
+            print(e)
+            return None
+
     class Meta:
         model = Company
         fields = '__all__'
@@ -68,6 +82,7 @@ class VacancySerializer(serializers.ModelSerializer):
     grade = serializers.SerializerMethodField()
     stack = serializers.SerializerMethodField()
     language = serializers.SerializerMethodField()
+    company = serializers.SerializerMethodField()
 
     def get_speciality(self, obj: Vacancy) -> dict | None:
         """F"""
@@ -126,6 +141,18 @@ class VacancySerializer(serializers.ModelSerializer):
             if data:
                 serializer = GradeSerializer(data)
                 return serializer.data.get('name')
+            return None
+        except AttributeError as e:
+            print(e)
+            return None
+
+    def get_company(self, obj: Vacancy) -> dict | None:
+        """F"""
+        try:
+            data = obj.company
+            if data:
+                serializer = CompanySerializer(data)
+                return serializer.data
             return None
         except AttributeError as e:
             print(e)
