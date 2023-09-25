@@ -125,7 +125,7 @@ class HHParser(BaseParser):
     ) -> str | None:
         """Метод возвращает требуемый язык"""
         return Analyzer.get_language(
-            title=self.rm_punctuations(title),
+            title=title,
             text=self.rm_punctuations(text),
             stack=stack
         )

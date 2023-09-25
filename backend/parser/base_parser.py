@@ -192,16 +192,25 @@ class BaseParser:
                         language=language_obj,
                     )
                     if created:
-                        city_obj.count += 1
-                        city_obj.save()
-                        speciality_obj.count += 1
-                        speciality_obj.save()
-                        experience_obj.count += 1
-                        experience_obj.save()
-                        grade_obj.count += 1
-                        grade_obj.save()
-                        language_obj.count += 1
-                        language_obj.save()
+                        for obj in (
+                            city_obj,
+                            speciality_obj,
+                            experience_obj,
+                            grade_obj,
+                            language_obj
+                        ):
+                            obj.count += 1
+                            obj.save()
+                        # city_obj.count += 1
+                        # city_obj.save()
+                        # speciality_obj.count += 1
+                        # speciality_obj.save()
+                        # experience_obj.count += 1
+                        # experience_obj.save()
+                        # grade_obj.count += 1
+                        # grade_obj.save()
+                        # language_obj.count += 1
+                        # language_obj.save()
                         if vacancy.stack:
                             for stack in vacancy.stack:
                                 stack_obj = StackTool.objects.get_or_create(

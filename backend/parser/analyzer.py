@@ -214,22 +214,3 @@ class Analyzer:
             if k in text:
                 return v
         return None
-
-    # @staticmethod
-    # def get_stack_raw_text(text: str):
-    #     from parsers_app.base_parser import BaseParser
-    #     stack_values = list(StackTools.objects.values_list('name',
-    #     flat=True))
-    #     stack_list = []
-    #     cleaned_text = BaseParser.text_cleaner(text).lower()
-    #     for stack in stack_values:
-    #         if stack.lower() in cleaned_text and
-    #         len(stack) > 1 and stack not in stack_list:
-    #             stack_list.append(stack)
-    #     return stack_list
-
-    # @staticmethod
-    # def get_experience_raw_text(text: str):
-    #     from .base_parser import BaseParser
-    #     cleaned_text = BaseParser.text_cleaner(text).lower()
-

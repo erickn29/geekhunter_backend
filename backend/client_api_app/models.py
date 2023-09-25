@@ -29,6 +29,7 @@ class StackTool(BaseModel):
 
     class Meta:
         db_table = 'vacancy_stack_tool'
+        ordering = ['-count', ]
 
 
 class Language(BaseModel):
@@ -36,6 +37,7 @@ class Language(BaseModel):
 
     class Meta:
         db_table = 'vacancy_language'
+        ordering = ['-count', ]
 
 
 class City(BaseModel):
@@ -43,6 +45,7 @@ class City(BaseModel):
 
     class Meta:
         db_table = 'vacancy_city'
+        ordering = ['-count', ]
 
 
 class Speciality(BaseModel):
@@ -50,6 +53,7 @@ class Speciality(BaseModel):
 
     class Meta:
         db_table = 'vacancy_speciality'
+        ordering = ['-count', ]
 
 
 class Experience(BaseModel):
@@ -57,6 +61,7 @@ class Experience(BaseModel):
 
     class Meta:
         db_table = 'vacancy_experience'
+        ordering = ['-count', ]
 
 
 class Grade(BaseModel):
@@ -64,6 +69,7 @@ class Grade(BaseModel):
 
     class Meta:
         db_table = 'vacancy_grade'
+        ordering = ['-count', ]
 
 
 class Company(models.Model):
@@ -105,6 +111,7 @@ class Vacancy(models.Model):
         ]
         unique_together = ('title', 'salary_from', 'salary_to', 'company')
         db_table = 'vacancy_vacancy'
+        ordering = ['-date', ]
 
     def __str__(self) -> str:
         return self.title
