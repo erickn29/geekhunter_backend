@@ -5,7 +5,10 @@ from django.http import HttpRequest
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import generics
+import os
+from dotenv import load_dotenv
 
+from parser.test_parsers import main
 from client_api_app.models import Vacancy, Language, Experience, Grade, \
     Speciality, StackTool, City
 from client_api_app.serializers import VacancySerializer, LanguageSerializer, \
@@ -13,12 +16,16 @@ from client_api_app.serializers import VacancySerializer, LanguageSerializer, \
     StackToolSerializer, CitySerializer
 
 
-@api_view(['GET', ])
+load_dotenv()
+
+
+@api_view(['POST', ])
 def test(request: HttpRequest) -> Response:
     """Тестовая"""
-    from parser.test_parsers import main
-    data = main(True)
-    return Response({'test': data})
+    if request.POST.get('token') == os.getenv('PARSER_TOKEN'):
+        data = main(True)
+        return Response({'test': data})
+    return Response({'error': 'token error'})
 
 
 class VacancyList(generics.ListAPIView):
@@ -65,7 +72,6 @@ class VacancyList(generics.ListAPIView):
                 grade = data.get('grade')
                 queryset = queryset.filter(grade__name=grade)
         return queryset
-
 
 
 class LanguageList(generics.ListAPIView):
