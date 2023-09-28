@@ -25,7 +25,7 @@ def get_parser_request() -> NoReturn:
 
 
 scheduler = schedule.Scheduler()
-scheduler.every().day.at("15:01").do(get_parser_request)
+scheduler.every().day.at("21:59").do(get_parser_request)
 
 
 while True:

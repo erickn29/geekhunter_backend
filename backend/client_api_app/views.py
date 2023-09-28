@@ -114,4 +114,3 @@ class StackToolList(generics.ListAPIView):
 
     queryset = StackTool.objects.all()
     serializer_class = StackToolSerializer
-

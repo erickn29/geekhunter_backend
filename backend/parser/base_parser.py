@@ -3,6 +3,7 @@ from typing import NoReturn
 
 import requests.exceptions
 from django.core.exceptions import MultipleObjectsReturned
+from django.db import IntegrityError
 from requests import request
 from tqdm import tqdm
 
@@ -31,7 +32,7 @@ class BaseParser:
         'охранник', 'поддержки', 'поддержку', 'оператор', 'поддержка',
         'маркетолог', 'онлайн-поддержки', 'менеджер', 'инженер-проектировщик'
     )
-    sleep_time = 0.2
+    sleep_time = 0.5
     course_rate = 100
 
     def __init__(self, url: str) -> NoReturn:
@@ -66,7 +67,6 @@ class BaseParser:
     def _get_pages(self, text: str) -> list[str]:
         """Метод возвращает список страниц(URL) с вакансиями"""
         print(f'Получаем список страниц(URL) с вакансиями {self.source_name}')
-        time.sleep(self.sleep_time)
         num_pages = self._get_num_pages(text)
         page_list = []
         if num_pages > 0:
@@ -88,7 +88,6 @@ class BaseParser:
         try:
             response = request(method='GET', url=link, headers=self.headers)
             if response.ok:
-                time.sleep(self.sleep_time)
                 return response.text
         except requests.exceptions.RequestException:
             print(f'Ошибка запроса к {link}')
@@ -114,7 +113,7 @@ class BaseParser:
             )
             for p in punctuations:
                 string = string.replace(p, '')
-            return string
+            return string.replace('-', ' ')
         except AttributeError as e:
             print(e)
             return ''
@@ -201,16 +200,6 @@ class BaseParser:
                         ):
                             obj.count += 1
                             obj.save()
-                        # city_obj.count += 1
-                        # city_obj.save()
-                        # speciality_obj.count += 1
-                        # speciality_obj.save()
-                        # experience_obj.count += 1
-                        # experience_obj.save()
-                        # grade_obj.count += 1
-                        # grade_obj.save()
-                        # language_obj.count += 1
-                        # language_obj.save()
                         if vacancy.stack:
                             for stack in vacancy.stack:
                                 stack_obj = StackTool.objects.get_or_create(
@@ -220,6 +209,8 @@ class BaseParser:
                                 stack_obj.save()
                                 vacancy_obj.stack.add(stack_obj)
                 except MultipleObjectsReturned as e:
+                    print(e)
+                except IntegrityError as e:
                     print(e)
                 except AttributeError as e:
                     print(e)

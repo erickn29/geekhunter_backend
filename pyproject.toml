@@ -21,6 +21,7 @@ tqdm = "^4.66.1"
 pydantic = "^2.3.0"
 django-extensions = "^3.2.3"
 schedule = "^1.2.0"
+djoser = "^2.2.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from client_api_app.models import Language, Grade, Experience, City, \
@@ -161,3 +162,11 @@ class VacancySerializer(serializers.ModelSerializer):
     class Meta:
         model = Vacancy
         fields = '__all__'
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор модели User"""
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name')

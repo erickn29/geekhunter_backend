@@ -1,5 +1,4 @@
 import re
-import time
 
 import requests
 from requests import request
@@ -32,7 +31,6 @@ class HHParser(BaseParser):
         """Метод возвращает количество страниц с вакансиями"""
         counter = 0
         if text:
-            time.sleep(self.sleep_time)
             elements_list = re.findall(r'pager-page-wrapper-\d+-\d+', text)
 
             if elements_list:
@@ -83,7 +81,6 @@ class HHParser(BaseParser):
                             ) & set(self.STOP_WORDS)
                         ):
                             links_list.append(block_link)
-                    time.sleep(self.sleep_time)
             except requests.exceptions.RequestException:
                 print(f'Не смог обработать страницу {page}')
         return links_list
@@ -269,7 +266,6 @@ class HHParser(BaseParser):
                     city=city,
                     name=self._get_company_name(soup)
                 )
-                time.sleep(self.sleep_time)
                 return Vacancy(
                     title=title,
                     text=text,

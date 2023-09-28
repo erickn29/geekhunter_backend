@@ -34,7 +34,6 @@ class Analyzer:
         ('C#', 'С#'): 'C#',
         (
             'JavaScript',
-            'Java Script',
             'react.js',
             'Frontend',
             'Node.JS',
@@ -44,7 +43,7 @@ class Analyzer:
             'Vue',
             'Angular',
         ): 'JavaScript',
-        ('Java', ): 'Java',
+        ('Java', 'JAVA', 'Spring'): 'Java',
         ('Golang', 'GO', 'Go'): 'Golang',
         ('Swift', ): 'Swift',
         ('Kotlin', ): 'Kotlin',
