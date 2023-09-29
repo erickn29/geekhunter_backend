@@ -1,3 +1,6 @@
+import hashlib
+import os
+
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, authentication_classes, \
@@ -9,6 +12,9 @@ from rest_framework.response import Response
 
 from client_api_app.models import Person
 from client_api_app.serializers import UserSerializer
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @api_view(['GET', ])
@@ -46,3 +52,16 @@ def create_person(request: Request, pk: int) -> Response:
             return Response(status=201)
         return Response(status=204)
     return Response(status=404)
+
+
+@csrf_exempt
+@api_view(['POST', ])
+def get_password(request: Request) -> Response:
+    """Функция генерирует локальный пароль пользователя"""
+    if request.data.get('username'):
+        user_id = request.data.get('username')
+        salt = os.getenv('DJANGO_SECRET_KEY')[25:]
+        hashed_password = hashlib.sha256(
+            (user_id + salt).encode('utf-8')).hexdigest()
+        return Response({'password': hashed_password})
+    return Response({'password': None})
