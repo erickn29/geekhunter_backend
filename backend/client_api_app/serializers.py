@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from client_api_app.models import Language, Grade, Experience, City, \
-    Speciality, Company, StackTool, Vacancy
+    Speciality, Company, StackTool, Vacancy, Person
 
 
 class LanguageSerializer(serializers.ModelSerializer):
@@ -164,9 +164,33 @@ class VacancySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PersonSerializer(serializers.ModelSerializer):
+    """Сериализатор модели Person"""
+
+    class Meta:
+        model = Person
+        fields = '__all__'
+
+
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор модели User"""
 
+    person = serializers.SerializerMethodField()
+
+    def get_person(self, obj: User) -> dict | None:
+        """Метод возвращает персональные данные пользователя"""
+        try:
+            data = Person.objects.filter(user=obj)
+            if data:
+                serializer = PersonSerializer(data[0])
+                return serializer.data
+            return {'id': None}
+        except AttributeError as e:
+            print(e)
+            return None
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = (
+            'id', 'username', 'email', 'first_name', 'last_name', 'person'
+        )
