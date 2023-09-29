@@ -22,7 +22,7 @@ def check_user_exists(request: Request, username: str) -> Response:
     """Функция проверяет наличие пользователя в базе"""
     user = User.objects.filter(username=username)
     if user:
-        return Response({'status': True})
+        return Response({'status': True, 'user_id': user[0].id})
     return Response({'status': False})
 
 
@@ -41,12 +41,14 @@ def create_person(request: Request, pk: int) -> Response:
     """Функция сохраняет объект Person"""
     user_obj = User.objects.filter(id=pk)
     if user_obj:
-        obj, created = Person.objects.get_or_create(
+        obj, created = Person.objects.update_or_create(
             user=user_obj[0],
-            given=request.data.get('first_name'),
-            family=request.data.get('last_name'),
-            telegram_login=request.data.get('telegram_login'),
-            photo_link=request.data.get('photo_link'),
+            defaults={
+                'given': request.data.get('first_name'),
+                'family': request.data.get('last_name'),
+                'telegram_login': request.data.get('telegram_login'),
+                'photo_link': request.data.get('photo_link'),
+            }
         )
         if created:
             return Response(status=201)
